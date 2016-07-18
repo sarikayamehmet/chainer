@@ -70,7 +70,6 @@ cdef class ndarray:
         readonly memory.MemoryPointer data
         readonly ndarray base
 
-
     def __init__(self, shape, dtype=float, memptr=None):
         cdef Py_ssize_t size
         self._shape = internal.get_size(shape)
@@ -91,7 +90,6 @@ cdef class ndarray:
 
         self._c_contiguous = True
         self._update_f_contiguity()
-
 
     # The definition order of attributes and methods are borrowed from the
     # order of documentation at the following NumPy document.
@@ -390,9 +388,7 @@ cdef class ndarray:
             shape = shape[0]
         return self._reshape(shape)
 
-
     # TODO(okuta): Implement resize
-
     cpdef ndarray _transpose(self, vector.vector[Py_ssize_t] axes):
         cdef ndarray ret
         cdef vector.vector[Py_ssize_t] a_axes, rev_axes
@@ -571,6 +567,7 @@ cdef class ndarray:
         .. seealso::
             :func:`cupy.repeat` for full documentation,
             :meth:`numpy.ndarray.repeat`
+
         """
         return _repeat(self, repeats, axis)
 
@@ -583,14 +580,17 @@ cdef class ndarray:
 
     def nonzero(self):
         """Return the indices of the elements that are non-zero.
-        containing the indices of the non-zero elements in that dimension.
+
+        Returned Array is containing the indices of the non-zero elements
+        in that dimension.
 
         Returns:
             tuple of arrays: Indices of elements that are non-zero.
 
-        .. seealso:: :func:`numpy.nonzero`
-        """
+        .. seealso::
+            :func:`numpy.nonzero`
 
+        """
         condition = self != 0
         dtype = numpy.int64
 
@@ -1213,7 +1213,7 @@ cdef class ndarray:
         rev_shape.assign(self._shape.rbegin(), self._shape.rend())
         rev_strides.assign(self._strides.rbegin(), self._strides.rend())
         self._f_contiguous = internal.get_c_contiguity(
-           rev_shape, rev_strides, self.itemsize)
+            rev_shape, rev_strides, self.itemsize)
 
     cpdef _update_contiguity(self):
         self._update_c_contiguity()
@@ -1231,7 +1231,6 @@ cdef class ndarray:
             self._update_contiguity()
         else:
             self._update_f_contiguity()
-
 
 
 cdef object newaxis = numpy.newaxis  # == None
@@ -1781,7 +1780,7 @@ cpdef ndarray _take(ndarray a, indices, axis=None, ndarray out=None):
 
 
 cpdef ndarray _diagonal(ndarray a, Py_ssize_t offset=0, Py_ssize_t axis1=0,
-                       Py_ssize_t axis2=1):
+                        Py_ssize_t axis2=1):
     if axis1 < axis2:
         min_axis, max_axis = axis1, axis2
     else:
@@ -2299,12 +2298,13 @@ cdef _clip = create_ufunc(
      'lll->l', 'LLL->L', 'qqq->q', 'QQQ->Q', 'eee->e', 'fff->f', 'ddd->d'),
     'out0 = min(in2, max(in1, in0))')
 
+
 # -----------------------------------------------------------------------------
 # Statistics
 # -----------------------------------------------------------------------------
 
 cpdef ndarray _var(ndarray a, axis=None, dtype=None, out=None, ddof=0,
-                  keepdims=False):
+                   keepdims=False):
     if axis is None:
         axis = tuple(range(a.ndim))
     if not isinstance(axis, tuple):
@@ -2336,6 +2336,7 @@ cdef _var_core = ReductionKernel(
     'S x, T mean, T alpha', 'T out',
     '(x - mean) * (x - mean)',
     'a + b', 'out = alpha * a', '0', '_var_core')
+
 cdef _var_core_out = ReductionKernel(
     'S x, T mean, T alpha', 'U out',
     '(x - mean) * (x - mean)',
@@ -2349,6 +2350,7 @@ cdef _mean = create_reduction_func(
      ('e->e', (None, None, None, 'float')),
      'f->f', 'd->d'),
     ('in0', 'a + b', 'out0 = a / (_in_ind.size() / _out_ind.size())', None))
+
 
 # -----------------------------------------------------------------------------
 # scan
@@ -2418,8 +2420,8 @@ def _inclusive_scan_kernel(dtype, block_size):
     }
     """).substitute(name=name, dtype=dtype, block_size=block_size)
     module = compile_with_cache(source)
-
     return module.get_function(name)
+
 
 @util.memoize(for_each_device=True)
 def _add_scan_blocked_sum_kernel(dtype):
@@ -2437,8 +2439,8 @@ def _add_scan_blocked_sum_kernel(dtype):
     }
     """).substitute(name=name, dtype=dtype)
     module = compile_with_cache(source)
-
     return module.get_function(name)
+
 
 @util.memoize(for_each_device=True)
 def _nonzero_1d_kernel(src_dtype, index_dtype):
@@ -2460,8 +2462,8 @@ def _nonzero_1d_kernel(src_dtype, index_dtype):
     }
     """).substitute(name=name, src_dtype=src_dtype, index_dtype=index_dtype)
     module = compile_with_cache(source)
-
     return module.get_function(name)
+
 
 @util.memoize(for_each_device=True)
 def _nonzero_kernel(src_dtype, src_ndim, index_dtype, dst_dtype):
@@ -2495,8 +2497,8 @@ def _nonzero_kernel(src_dtype, src_ndim, index_dtype, dst_dtype):
                         src_ndim=src_ndim, index_dtype=index_dtype,
                         dst_dtype=dst_dtype)
     module = compile_with_cache(source)
-
     return module.get_function(name)
+
 
 def scan(a, out=None):
     """Return the prefix sum(scan) of the elements.
